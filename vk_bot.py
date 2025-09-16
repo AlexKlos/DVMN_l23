@@ -15,18 +15,23 @@ def get_dialog_flow_response(project_id, session_id, text):
     response = session_client.detect_intent(
         request={'session': session, 'query_input': query_input}
     )
-    return response.query_result.fulfillment_text
+    qr = response.query_result
+    if qr.intent.is_fallback:
+        return None
+    
+    return qr.fulfillment_text
 
 
 def reply_via_dialogflow(event, vk_api, project_id):
     user_id=event.user_id
     user_text = event.text
     message = get_dialog_flow_response(project_id, user_id, user_text)
-    vk_api.messages.send(
-        user_id=user_id,
-        message=message,
-        random_id=random.randint(1,1000)
-    )
+    if message:
+        vk_api.messages.send(
+            user_id=user_id,
+            message=message,
+            random_id=random.randint(1,1000)
+        )
 
 
 def main():

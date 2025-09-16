@@ -24,7 +24,11 @@ def get_dialog_flow_response(project_id, session_id, text):
     response = session_client.detect_intent(
         request={'session': session, 'query_input': query_input}
     )
-    return response.query_result.fulfillment_text
+    qr = response.query_result
+    if qr.intent.is_fallback:
+        return None
+    
+    return qr.fulfillment_text
 
 
 def reply_via_dialogflow(update, context):
@@ -33,7 +37,8 @@ def reply_via_dialogflow(update, context):
     session_id = update.effective_user.id
 
     answer = get_dialog_flow_response(project_id, session_id, user_text)
-    update.message.reply_text(answer)
+    if answer:
+        update.message.reply_text(answer)
 
 
 def main():
