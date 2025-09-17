@@ -2,20 +2,24 @@ import json
 
 from environs import env
 from google.cloud import dialogflow
+from google.oauth2 import service_account
 
-INTENT_DISPLAY_NAME = 'Как устроиться к вам на работу'
-JSON_SECTION_KEY = 'Устройство на работу'
+INTENT_DISPLAY_NAME = 'Забыл пароль'
+JSON_SECTION_KEY = 'Забыл пароль'
 
 
 def create_intent(
-        project_id, 
-        display_name, 
-        training_phrases_parts, 
-        message_texts
+        project_id,
+        display_name,
+        training_phrases_parts,
+        message_texts,
+        credentials
     ):
-    intents_client = dialogflow.IntentsClient()
+    intents_client = dialogflow.IntentsClient(credentials=credentials)
+    agents_client = dialogflow.AgentsClient(credentials=credentials)
 
-    parent = dialogflow.AgentsClient.agent_path(project_id)
+    parent = agents_client.agent_path(project_id)
+
     training_phrases = []
     for phrase in training_phrases_parts:
         part = dialogflow.Intent.TrainingPhrase.Part(text=phrase)
@@ -25,8 +29,8 @@ def create_intent(
     message = dialogflow.Intent.Message(text=text)
 
     intent = dialogflow.Intent(
-        display_name=display_name, 
-        training_phrases=training_phrases, 
+        display_name=display_name,
+        training_phrases=training_phrases,
         messages=[message],
     )
 
@@ -39,10 +43,13 @@ def create_intent(
 def main():
     env.read_env()
     project_id = env.str('DIALOG_FLOW_PROJECT_ID')
+    credentials_path = env.str('GOOGLE_CREDENTIALS_PATH')
+
+    credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
     with open('questions.json', 'r', encoding="utf-8") as my_file:
-        dataset_json = my_file.read()
-    dataset = json.loads(dataset_json)
+        dataset = json.load(my_file)
+
     section = dataset[JSON_SECTION_KEY]
     training_phrases_parts = section['questions']
     answer = section['answer']
@@ -52,6 +59,7 @@ def main():
         display_name=INTENT_DISPLAY_NAME,
         training_phrases_parts=training_phrases_parts,
         message_texts=[answer],
+        credentials=credentials
     )
 
 
