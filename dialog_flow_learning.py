@@ -4,8 +4,8 @@ from environs import env
 from google.cloud import dialogflow
 from google.oauth2 import service_account
 
-INTENT_DISPLAY_NAME = 'Устройство на работу'
-JSON_SECTION_KEY = 'Устройство на работу'
+INTENT_DISPLAY_NAME = 'Вопросы от действующих партнёров'
+JSON_SECTION_KEY = 'Вопросы от действующих партнёров'
 
 
 def create_intent(
