@@ -7,11 +7,35 @@ from google.api_core.exceptions import GoogleAPICallError, RetryError
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError
 
+
 logging.basicConfig(
     format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger('tg-bot')
+
+
+class TelegramErrorsHandler(logging.Handler):
+    def __init__(self, bot, chat_id: int):
+        super().__init__(level=logging.ERROR)
+        self.bot = bot
+        self.chat_id = chat_id
+        self.setFormatter(logging.Formatter(
+            fmt='[%(levelname)s] %(name)s\n%(asctime)s\n\n%(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            msg = self.format(record)
+            if len(msg) > 3500:
+                msg = msg[:3500] + '\n...\n(truncated)'
+            self.bot.send_message(chat_id=self.chat_id, text=msg)
+        except Exception:
+            try:
+                print('Failed to send error log to Telegram chat.')
+            except Exception:
+                pass
 
 
 def start(update, context):
@@ -26,7 +50,7 @@ def get_dialog_flow_response(project_id, session_id, text, credentials):
         session_client = dialogflow.SessionsClient(credentials=credentials)
         session = session_client.session_path(project_id, str(session_id))
 
-        text_input = dialogflow.TextInput(text=text, language_code='Russian — ru')
+        text_input = dialogflow.TextInput(text=text, language_code='Russian - ru')
         query_input = dialogflow.QueryInput(text=text_input)
 
         response = session_client.detect_intent(
@@ -83,6 +107,7 @@ def main():
     TG_BOT_TOKEN = env.str('TG_BOT_TOKEN')
     DIALOG_FLOW_PROJECT_ID = env.str('DIALOG_FLOW_PROJECT_ID')
     GOOGLE_CREDENTIALS_PATH = env.str('GOOGLE_CREDENTIALS_PATH')
+    TG_CHAT_ID = env.int('TG_CHAT_ID')
 
     try:
         credentials = service_account.Credentials.from_service_account_file(GOOGLE_CREDENTIALS_PATH)
@@ -94,6 +119,9 @@ def main():
     try:
         updater = Updater(TG_BOT_TOKEN, use_context=True)
         dispatcher = updater.dispatcher
+
+        error_handler = TelegramErrorsHandler(updater.bot, TG_CHAT_ID)
+        logging.getLogger().addHandler(error_handler)
 
         dispatcher.bot_data['DIALOG_FLOW_PROJECT_ID'] = DIALOG_FLOW_PROJECT_ID
         dispatcher.bot_data['GOOGLE_CREDENTIALS'] = credentials
