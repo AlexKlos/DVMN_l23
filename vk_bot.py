@@ -21,7 +21,7 @@ logger = logging.getLogger('vk-bot')
 
 class TelegramErrorsHandler(logging.Handler):
     def __init__(self, bot: Bot, chat_id: int):
-        super().__init__(level=logging.INFO)
+        super().__init__(level=logging.ERROR)
         self.bot = bot
         self.chat_id = chat_id
         self.setFormatter(logging.Formatter(
