@@ -15,27 +15,28 @@ logger = logging.getLogger('vk-bot')
 
 
 def reply_via_dialogflow(event, vk_api_client, cfg, credentials):
-    user_id = event.user_id
+    session_id = event.user_id
     user_text = (event.text or '').strip()
     if not user_text:
-        logger.info('Skip empty text from user_id=%s', user_id)
+        logger.info('Skip empty text from user_id=%s', session_id)
         return
-
-    message = detect_intent_text(cfg['DIALOG_FLOW_PROJECT_ID'], user_id, user_text, credentials)
+    
+    project_id = cfg['DIALOG_FLOW_PROJECT_ID']
+    message = detect_intent_text(project_id, session_id, user_text, credentials)
     if not message:
-        logger.info('No reply for user_id=%s (fallback or Dialogflow error)', user_id)
+        logger.info('No reply for user_id=%s (fallback or Dialogflow error)', session_id)
         return
 
     try:
         vk_api_client.messages.send(
-            user_id=user_id,
+            user_id=session_id,
             message=message,
             random_id=random.randint(1, 1000)
         )
     except (ApiError, VkApiError) as e:
-        logger.exception('VK API send error (user_id=%s): %s', user_id, e)
+        logger.exception('VK API send error (user_id=%s): %s', session_id, e)
     except Exception as e:
-        logger.exception('Unexpected VK send error (user_id=%s): %s', user_id, e)
+        logger.exception('Unexpected VK send error (user_id=%s): %s', session_id, e)
 
 
 def main():

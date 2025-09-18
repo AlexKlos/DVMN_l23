@@ -27,7 +27,7 @@ def reply_via_dialogflow(update, context):
     cfg = context.bot_data.get('CFG')
     credentials = context.bot_data.get('CREDENTIALS')
     project_id = cfg['DIALOG_FLOW_PROJECT_ID']
-    session_id = update.effective_user.id
+    session_id = 'tg_' + str(update.effective_user.id)
 
     try:
         answer = detect_intent_text(project_id, session_id, user_text, credentials)
