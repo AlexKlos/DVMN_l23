@@ -8,12 +8,9 @@ from telegram import Bot
 
 from common.df import detect_intent_text
 from common.logging_handlers import TelegramErrorsHandler
+from common.logging_setup import setup_logging
 from common.settings import load_settings
 
-logging.basicConfig(
-    format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
-    level=logging.INFO,
-)
 logger = logging.getLogger('vk-bot')
 
 
@@ -42,6 +39,9 @@ def reply_via_dialogflow(event, vk_api_client, cfg, credentials):
 
 
 def main():
+    global logger
+    logger = setup_logging('vk-bot')
+
     try:
         cfg, credentials = load_settings()
     except Exception as e:

@@ -5,12 +5,9 @@ from telegram.error import TelegramError
 
 from common.df import detect_intent_text
 from common.logging_handlers import TelegramErrorsHandler
+from common.logging_setup import setup_logging
 from common.settings import load_settings
 
-logging.basicConfig(
-    format='%(asctime)s | %(levelname)s | %(name)s | %(message)s',
-    level=logging.INFO
-)
 logger = logging.getLogger('tg-bot')
 
 
@@ -45,6 +42,9 @@ def reply_via_dialogflow(update, context):
 
 
 def main():
+    global logger
+    logger = setup_logging('tg-bot')
+
     try:
         cfg, credentials = load_settings()
     except Exception as e:
