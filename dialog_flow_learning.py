@@ -34,10 +34,9 @@ def create_intent(
         messages=[message],
     )
 
-    response = intents_client.create_intent(
+    intents_client.create_intent(
         request={'parent': parent, 'intent': intent}
     )
-    print('Intent created: {}'.format(response.display_name))
 
 
 def main():
