@@ -42,11 +42,12 @@ def create_intent(
 def main():
     env.read_env()
     project_id = env.str('DIALOG_FLOW_PROJECT_ID')
-    credentials_path = env.str('GOOGLE_CREDENTIALS_PATH')
+    credentials_path = env.str('GOOGLE_CREDENTIALS_PATH', default='./credentials.json')
+    dataset_path = env.str('DATASET_PATH', default='./questions.json')
 
     credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
-    with open('questions.json', 'r', encoding="utf-8") as my_file:
+    with open(dataset_path, 'r', encoding='utf-8') as my_file:
         dataset = json.load(my_file)
 
     section = dataset[JSON_SECTION_KEY]
