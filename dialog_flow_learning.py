@@ -4,9 +4,6 @@ from environs import env
 from google.cloud import dialogflow
 from google.oauth2 import service_account
 
-INTENT_DISPLAY_NAME = 'Вопросы от действующих партнёров'
-JSON_SECTION_KEY = 'Вопросы от действующих партнёров'
-
 
 def create_intent(
         project_id,
@@ -50,17 +47,18 @@ def main():
     with open(dataset_path, 'r', encoding='utf-8') as my_file:
         dataset = json.load(my_file)
 
-    section = dataset[JSON_SECTION_KEY]
-    training_phrases_parts = section['questions']
-    answer = section['answer']
-
-    create_intent(
-        project_id=project_id,
-        display_name=INTENT_DISPLAY_NAME,
-        training_phrases_parts=training_phrases_parts,
-        message_texts=[answer],
-        credentials=credentials
-    )
+    for section_name, section in dataset.items():
+        questions = section.get('questions', [])
+        answer = section.get('answer', '')
+        if not questions or not isinstance(questions, list):
+            continue
+        create_intent(
+            project_id=project_id,
+            display_name=section_name,
+            training_phrases_parts=questions,
+            message_texts=[answer],
+            credentials=credentials
+        )
 
 
 if __name__ == '__main__':
